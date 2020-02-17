@@ -47,7 +47,8 @@
   '(("\\.pdf\\'" "acroread" (file))
     ("\\.mp3\\'" "xmms" (file))
     ("\\.\\(?:mpe?g\\|avi\\|wmv\\)\\'" "mplayer" ("-idx" file))
-    ("\\.\\(?:jp?g\\|png\\)\\'" "display" (file)))
+    ("\\.\\(?:jpe?g\\|png\\)\\'" "display" (file))
+    )
   "Associations of file patterns to external programs.
 File pattern is a regular expression describing the files to
 associate with a program. The program arguments are a list of
@@ -107,9 +108,13 @@ string."
             (when (or (not openwith-confirm-invocation)
                       (y-or-n-p (format "%s %s? " (cadr oa)
                                         (mapconcat #'identity params " "))))
-	      (if (eq system-type 'windows-nt)
-		  (openwith-open-windows file)
-		(openwith-open-unix (cadr oa) params))
+	      ;; garberw myprocess
+	      (let ((myprocess (if (eq system-type 'windows-nt)
+				   (openwith-open-windows file)
+				 (openwith-open-unix (cadr oa) params))))
+		;; garberw added next two lines
+		(set-process-query-on-exit-flag myprocess nil)
+		myprocess)
               (kill-buffer nil)
               (when (featurep 'recentf)
                 (recentf-add-file file))
